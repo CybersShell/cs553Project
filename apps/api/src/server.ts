@@ -1,6 +1,25 @@
 import express from "express";
 import { env } from "./config/env";
-import { pool } from "./db/pool";
+import * as query from "./db/query";
+import * as schema from "./schema/schema";
+import { StartTasksController } from "./routes/task";
+
+const handleServerErrors = (err, req, res, next) =>{
+            if(err){
+                if (err instanceof SyntaxError){
+
+                    if(/JSON/i.test(err.message)){
+
+                        res.status(400).json({ error: `Bad JSON format: ${err.message}` })
+                    } else{
+						res.status(500).json(err.message)
+                    }
+                    console.log(err.message)
+					return
+                }
+          }
+          next(err);
+}
 
 const app = express();
 
@@ -15,7 +34,7 @@ app.get("/health", (_req, res) => {
 
 app.get("/db-health", async (_req, res) => {
 	try {
-		const result = await pool.query("SELECT NOW() AS current_time");
+		const result = await query.getDBTime();
 		res.json({
 			status: "ok",
 			database: "connected",
@@ -30,28 +49,13 @@ app.get("/db-health", async (_req, res) => {
 	}
 });
 
-app.get("/tasks", async (_req, res) => {
-	try {
-		const result = await pool.query(
-			`SELECT id,
-                    title,
-                    description,
-                    status,
-                    created_at AS "createdAt",
-                    updated_at AS "updatedAt"
-             FROM tasks
-             ORDER BY id `,
-		);
+StartTasksController(app)
 
-		res.json(result.rows);
-	} catch (error) {
-		console.error("Failed to fetch tasks:", error);
-		res.status(500).json({
-			status: "error",
-			message: "Failed to fetch tasks",
-		});
-	}
+app.use((req, res) => {
+  res.status(404).json({ error: "Not found" });
 });
+
+app.use(handleServerErrors)
 
 app.listen(env.port, () => {
 	console.log(`Server running at http://localhost:${env.port}`);

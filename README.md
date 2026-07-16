@@ -1,22 +1,137 @@
 
-# CS453/553 Client-Server Architecture Project
+# Task API Server
 
-This repository contains the **starter template** for the semester project in  
-**CS453 / CS553 – Client/Server Architectures**.
+This repository contains the code for the CS 453 / 553 Project.
 
-Students will build and extend a distributed web application over the course
-of the semester. The system will evolve through several architectural stages,
-mirroring the historical evolution of modern web systems.
+This is a task server that supports the following routes:
 
-The goal of the project is to help students understand **how real client/server
-systems are designed and built**, including:
+| Method | Route | Description |
+---------|-------|-------------|
+| Get       | `/tasks`      |  Returns all tasks |
+| POST       | `/tasks`      |  Create a new task |
+| GET       | `/tasks/:id`      |  Create a new task |
+| PATCH       | `/tasks/:id`      |  Update an existing task |
+| DELETE       | `/tasks/:id`      |  Delete an existing task |
 
-- REST API design
-- database integration
-- authentication and authorization
-- multi-service architectures
-- real-time communication
-- modern API technologies
+
+## Starting Services
+
+# Database
+
+This project uses PostgreSQL running in Docker.
+
+## Setting up the database
+
+```shell
+docker compose up -d
+or 
+npm run db:start
+```
+Stop the database
+```shell
+docker compose down 
+or 
+npm run db:stop
+```
+Reset the database completely
+```shell
+docker compose down -v
+or 
+npm run db:reset
+```
+## Default connection settings
+- Database: cs453 
+- User: postgres 
+- Password: postgres 
+- Port: 5432
+
+```dotenv
+DATABASE_URL=postgresql://postgres:postgres@localhost:5432/cs453
+```
+
+## Creating tables
+
+Run the schema file against the local database after PostgreSQL is running:
+
+```shell
+psql postgresql://postgres:postgres@localhost:5432/cs453 -f database/schema.sql
+```
+
+## To start the server
+```bash
+npm install
+npm run server
+```
+
+## Testing
+
+GET database health:
+
+```
+curl -X GET http://localhost:3000/db-health
+```
+
+GET all tasks:
+
+```
+curl -X GET http://localhost:3000/tasks
+```
+
+GET a task:
+
+```
+curl -X GET http://localhost:3000/tasks/1
+```
+
+POST a task:
+
+```
+curl -X POST http://localhost:3000/tasks \    
+  -H "Content-Type: application/json" \
+  -d '{"title": "Create task API"}'
+```
+
+PATCH a task:
+
+```
+curl -X PATCH http://localhost:3000/tasks/3 \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Patch rejects non-existant tasks", "status": "in progress"}'
+```
+
+PUT a task:
+
+```
+curl -X PUT http://localhost:3000/tasks/3 \
+  -H "Content-Type: application/json" \
+  -d '{"title": "Part one of project done", "status": "done"}'
+```
+
+DELETE a task:
+
+```
+curl -X DELETE http://localhost:3000/tasks/1
+```
+
+---
+
+## Reflection Questions
+
+1. An in-memory API consists of storage that is volitile and will be reset on server restart. A database on the other hand persists data in a permanent data store. A database can be restricted based on internal (database) access control, where as an in-memory API has to have access control added and stored somewhere, which would normally be the job of the database.
+
+2. Separating routes, services, and database logic is useful to keep code seperate so that things stay clean and simple. For example, supose a user route needs to check for a user, it can call the function in the database service without repeating any code and possiblly prevent attacks.
+
+3. 
+  - 200 for OK `GET`s
+  - 201 for OK `POST`s and `PATCH`s
+  - 204 for OK `DELETE`s
+  - 400 for bad input
+  - 403 / 404 for non-existant resources
+  - 500 for server errors
+
+4. The server returns a JSON error message.
+
+5. Debugging SQL query statements was very hard. Query parameters being slightly different from online examples was a bit odd, but expected.
 
 ---
 

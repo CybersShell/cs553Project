@@ -15,7 +15,7 @@
 	},
 	"repository": {
 		"type": "git",
-		"url": "https://github.com/UAH-Computer-Science/cs453-project-template.git"
+		"url": "https://github.com/CybersShell/cs553Project.git"
 	},
 	"private": true,
 	"devDependencies": {
