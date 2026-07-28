@@ -2,6 +2,7 @@ export type Task = {
     id: any;
     title: String;
     status: String;
+    description: String;
 }
 
 export type ErrMsg = {

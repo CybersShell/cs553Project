@@ -4,7 +4,7 @@ import * as query from "./db/query";
 import * as schema from "./schema/schema";
 import { StartTasksController } from "./routes/task";
 
-const handleServerErrors = (err, req, res, next) =>{
+const handleServerErrors = (err: Error, req: express.Request, res: express.Response, next: Function) =>{
             if(err){
                 if (err instanceof SyntaxError){
 
@@ -25,14 +25,14 @@ const app = express();
 
 app.use(express.json());
 
-app.get("/health", (_req, res) => {
+app.get("/health", (_req: express.Request, res: express.Response) => {
 	res.json({
 		status: "ok",
 		service: "cs453-api",
 	});
 });
 
-app.get("/db-health", async (_req, res) => {
+app.get("/db-health", async (_req: express.Request, res: express.Response) => {
 	try {
 		const result = await query.getDBTime();
 		res.json({
@@ -51,7 +51,7 @@ app.get("/db-health", async (_req, res) => {
 
 StartTasksController(app)
 
-app.use((req, res) => {
+app.use((req: express.Request, res: express.Response) => {
   res.status(404).json({ error: "Not found" });
 });
 

@@ -28,14 +28,14 @@ export async function updateTask(task: schema.Task) {
                       title = CASE WHEN $2 != '' THEN $2 ELSE title END,
                       status = CASE WHEN $3 != '' THEN $3 ELSE status END,
                       description = CASE WHEN $4 != '' THEN $4 ELSE description END,
-                  updated_at = NOW()
+                      updated_at = NOW()
                   WHERE id = ($1) RETURNING id,
                         title,
                         description,
                         status,
                         created_at AS "createdAt",
                         updated_at AS "updatedAt";`,
-               [task.id, task.title, task.status, '']
+               [task.id, task.title, task.status, task.description]
                // TODO: add more parameters
             );
 }
