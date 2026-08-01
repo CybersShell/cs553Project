@@ -1,8 +1,9 @@
 import express from "express";
 import { env } from "./config/env";
 import * as query from "./db/query";
-import * as schema from "./schema/schema";
 import { StartTasksController } from "./routes/task";
+import { StartProjectsController } from "./routes/project";
+import { StartAuthController } from "./routes/auth";
 
 const handleServerErrors = (err: Error, req: express.Request, res: express.Response, next: Function) =>{
             if(err){
@@ -21,42 +22,48 @@ const handleServerErrors = (err: Error, req: express.Request, res: express.Respo
           next(err);
 }
 
-const app = express();
+(async () => {
 
-app.use(express.json());
-
-app.get("/health", (_req: express.Request, res: express.Response) => {
-	res.json({
-		status: "ok",
-		service: "cs453-api",
-	});
-});
-
-app.get("/db-health", async (_req: express.Request, res: express.Response) => {
-	try {
-		const result = await query.getDBTime();
+	const app = express();
+	
+	app.use(express.json());
+	
+	app.get("/health", (_req: express.Request, res: express.Response) => {
 		res.json({
 			status: "ok",
-			database: "connected",
-			currentTime: result.rows[0].current_time,
+			service: "cs453-api",
 		});
-	} catch (error) {
-		console.error("Database health check failed:", error);
-		res.status(500).json({
+	});
+	
+	app.get("/db-health", async (_req: express.Request, res: express.Response) => {
+		try {
+			const result = await query.getDBTime();
+			res.json({
+				status: "ok",
+				database: "connected",
+				currentTime: result.rows[0].current_time,
+			});
+		} catch (error) {
+			console.error("Database health check failed:", error);
+			res.status(500).json({
 			status: "error",
 			database: "disconnected",
 		});
 	}
-});
+	});
 
-StartTasksController(app)
+	StartTasksController(app);
+	StartProjectsController(app);
+	await StartAuthController(app);
 
-app.use((req: express.Request, res: express.Response) => {
-  res.status(404).json({ error: "Not found" });
-});
+	app.use((req: express.Request, res: express.Response) => {
+		res.status(404).json({ error: "Not found" });
+	});
 
-app.use(handleServerErrors)
+	app.use(handleServerErrors)
 
-app.listen(env.port, () => {
-	console.log(`Server running at http://localhost:${env.port}`);
-});
+	app.listen(env.port, () => {
+		console.log(`Server running at http://localhost:${env.port}`);
+	});
+
+})()

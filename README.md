@@ -7,11 +7,18 @@ This is a task server that supports the following routes:
 
 | Method | Route | Description |
 ---------|-------|-------------|
+| POST       | `/auth/register`      |  Create a new new user |
+| POST       | `/auth/login`      |  Login a user |
 | Get       | `/tasks`      |  Returns all tasks |
 | POST       | `/tasks`      |  Create a new task |
 | GET       | `/tasks/:id`      |  Create a new task |
 | PATCH       | `/tasks/:id`      |  Update an existing task |
 | DELETE       | `/tasks/:id`      |  Delete an existing task |
+| Get       | `/projectproject`      |  Returns all projects |
+| POST       | `/project`      |  Create a new project |
+| GET       | `/project/:id`      |  Create a new project |
+| PATCH       | `/project/:id`      |  Update an existing project |
+| DELETE       | `/project/:id`      |  Delete an existing project |
 
 
 ## Starting Services
@@ -67,53 +74,114 @@ npm run server
 
 GET database health:
 
-```
+```bash
 curl -X GET http://localhost:3000/db-health
 ```
 
+Register a user:
+
+```bash
+curl -X POST http://localhost:3000/auth/register \                             
+  -H "Content-Type: application/json" \
+  -d '{"email": "anw0044@uah.edu", "password":"a.very.secure.pass", "name": "Andrew"}'
+```
+
+To update this user to have admin status:
+
+```bash
+psql postgresql://postgres:postgres@localhost:5432/cs453 -f database/user.sql
+```
+
+Login:
+
+```bash
+token=$(curl -X POST http://localhost:3000/auth/login \
+  -H "Content-Type: application/json" \                                  
+  -d '{"email": "anw0044@uah.edu", "password":"a.very.secure.pass"}' | jq -r .token)
+```
+
+
 GET all tasks:
 
-```
-curl -X GET http://localhost:3000/tasks
+```bash
+curl -X GET http://localhost:3000/tasks \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
 ```
 
 GET a task:
 
-```
-curl -X GET http://localhost:3000/tasks/1
+```bash
+curl -X GET http://localhost:3000/tasks/1 \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
 ```
 
 POST a task:
 
-```
+```bash
 curl -X POST http://localhost:3000/tasks \    
-  -H "Content-Type: application/json" \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
   -d '{"title": "Create task API"}'
+```
+
+The Project_id field is optional, and the server will return an error if the project does not exist.
+
+```
+curl -X PATCH http://localhost:3000/tasks/1 \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
+  -d '{"title": "Whimsy", "status": "in progress", "project_id": 55}'
 ```
 
 PATCH a task:
 
-```
+```bash
 curl -X PATCH http://localhost:3000/tasks/3 \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Patch rejects non-existant tasks", "status": "in progress"}'
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
+  -d '{"title": "Patch rejects non-existant tasks", "status": "in progress", "project_id": 1}'
 ```
 
-PUT a task:
+As an admin, DELETE a task:
 
 ```
-curl -X PUT http://localhost:3000/tasks/3 \
-  -H "Content-Type: application/json" \
-  -d '{"title": "Part one of project done", "status": "done"}'
+curl -X DELETE http://localhost:3000/tasks/1 \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
 ```
 
-DELETE a task:
+GET all projects:
+
+```bash
+curl -X GET http://localhost:3000/projects \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
+```
+
+GET a project:
+
+```bash
+curl -X GET http://localhost:3000/projects/1 \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
+```
+
+POST a project:
+
+```bash
+curl -X POST http://localhost:3000/projects \    
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
+  -d '{"name": "Task and Project API"}' 
+```
+
+PATCH a project:
+
+```bash
+curl -X PATCH http://localhost:3000/projects/1 \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
+  -d '{"name": "Task and Project API", "description":"Create a task and project API with authentication"}'
+```
+
+As an admin, DELETE a project:
 
 ```
-curl -X DELETE http://localhost:3000/tasks/1
+curl -X DELETE http://localhost:3000/projects/1 \
+  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
 ```
-
----
 
 
 ---
