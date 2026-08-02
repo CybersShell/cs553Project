@@ -30,7 +30,7 @@ export type ErrMsg = {
 
 
 
-export function validateTaskReqData<Type>(reqData: any): ErrMsg | undefined {
+export function validateTaskReqData(reqData: any): ErrMsg | undefined {
 
 	if (!reqData.hasOwnProperty('title')){
 	    console.error("No title in task request");
@@ -41,7 +41,7 @@ export function validateTaskReqData<Type>(reqData: any): ErrMsg | undefined {
 	}
 }
 
-export function validateProjectReqData<Type>(reqData: any): ErrMsg | undefined {
+export function validateProjectReqData(reqData: any): ErrMsg | undefined {
 
 	if (!reqData.hasOwnProperty('name')){
 	    console.error("No name in project request");

@@ -132,14 +132,13 @@ async function createTask(req: express.Request, res: express.Response) {
 async function updateTask(req: express.Request, res: express.Response) {
     try {
         const reqBody = req.body;
-        if (reqBody) {
-            const errorMsg = schema.validateTaskReqData(reqBody);
-            if (errorMsg !== undefined) {
-                res.status(400).json(
-                    errorMsg
-                );
-                return;
-            }
+        if (!req.body) {
+            console.error("No request body");
+            res.status(400).json({
+                status: "error",
+                message: "No request body",
+            });
+            return;
         }
         var task: schema.Task = {
             id: req.params.id,
@@ -164,13 +163,13 @@ async function updateTask(req: express.Request, res: express.Response) {
                 status: "error",
                 message: "Task not found",
             });
-            return
+            return;
         }
 
         res.json({
             status: "success",
             message: result.rows[0]
-        })
+        });
     } catch (error) {
         console.error("Failed to update task:", error);
         res.status(500).json({
@@ -190,7 +189,7 @@ async function deleteTask(req: express.Request, res: express.Response) {
                     status: "error",
                     message: `Task ${req.params.id} not found`
                 })
-                return
+                return;
             }
             res.status(204).json({
                 status: "success",
@@ -205,12 +204,13 @@ async function deleteTask(req: express.Request, res: express.Response) {
                 status: "error",
                 message: `Task ${req.params.id} not found`
             })
-            return
+            return;
         }
+
         res.status(204).json({
             status: "success",
             message: "task deleted successfully"
-        })
+        });
 
     } catch (error) {
         console.error("Failed to delete task:", error);

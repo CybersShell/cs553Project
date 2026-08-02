@@ -44,14 +44,15 @@ export async function getProjectById(id: number, userId: number, isAdmin: boolea
                  WHERE id = $1`, [id]
       );
    }
-      const checkProject = await dbPool.query(
+   const checkProject = await dbPool.query(
       `SELECT id FROM projects WHERE id = $1 AND owner_id = $2`, [id, userId]
    );
    if (checkProject.rowCount == 0) {
-      return { Error: `Fetching project failed: Project with ID ${id} does not exist or the user does not have access`,
-      statusCode: 404
+      return {
+         Error: `Fetching project failed: Project with ID ${id} does not exist or the user does not have access`,
+         statusCode: 404
+      };
    }
-}
    return await dbPool.query(
       `SELECT id,
               name,
@@ -78,15 +79,7 @@ export async function updateProject(Project: schema.Project, userID: any, isAdmi
          [Project.id, Project.name, Project.description]
       );
    }
-   const checkProject = await dbPool.query(
-      `SELECT id FROM projects WHERE id = $1 AND owner_id = $2`, [Project.id, userID]
-   );
-   if (checkProject.rowCount == 0) {
-      return { Error: `Updating project failed: Project with ID ${Project.id} does not exist or the user does not have access`,
-      statusCode: 404
-   };
-   }
-   return await dbPool.query(
+   const result = await dbPool.query(
       `UPDATE projects
                   SET
                       name = CASE WHEN $2 != '' THEN $2 ELSE name END,
@@ -96,9 +89,16 @@ export async function updateProject(Project: schema.Project, userID: any, isAdmi
                         owner_id,
                         description,
                         created_at AS "createdAt";`,
-      [Project.id, Project.name, Project.description, Project.ownerId]
+      [Project.id, Project.name, Project.description, userID]
       // TODO: add more parameters
    );
+   if (result.rowCount == 0) {
+      return {
+         Error: `Updating project failed: Project with ID ${Project.id} does not exist or the user does not have access`,
+         statusCode: 404
+      };
+   }
+   return result;
 }
 
 export async function deleteProject(id: any) {

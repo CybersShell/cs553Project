@@ -14,11 +14,11 @@ This is a task server that supports the following routes:
 | GET       | `/tasks/:id`      |  Create a new task |
 | PATCH       | `/tasks/:id`      |  Update an existing task |
 | DELETE       | `/tasks/:id`      |  Delete an existing task |
-| Get       | `/projectproject`      |  Returns all projects |
-| POST       | `/project`      |  Create a new project |
-| GET       | `/project/:id`      |  Create a new project |
-| PATCH       | `/project/:id`      |  Update an existing project |
-| DELETE       | `/project/:id`      |  Delete an existing project |
+| Get       | `/projects`      |  Returns all projects |
+| POST       | `/projects`      |  Create a new project |
+| GET       | `/projects/:id`      |  Create a new project |
+| PATCH       | `/projects/:id`      |  Update an existing project |
+| DELETE       | `/projects/:id`      |  Delete an existing project |
 
 
 ## Starting Services
@@ -69,6 +69,11 @@ psql postgresql://postgres:postgres@localhost:5432/cs453 -f database/schema.sql
 npm install
 npm run server
 ```
+
+Admins can:
+  - delete projects
+  - alter any project or task
+  - get any project or task
 
 ## Testing
 
@@ -123,7 +128,7 @@ curl -X POST http://localhost:3000/tasks \
   -d '{"title": "Create task API"}'
 ```
 
-The Project_id field is optional, and the server will return an error if the project does not exist.
+The `project_id` field is optional, and the server will return an error if the project does not exist.
 
 ```
 curl -X PATCH http://localhost:3000/tasks/1 \

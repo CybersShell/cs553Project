@@ -105,14 +105,12 @@ async function createProject(req: express.Request, res: express.Response) {
         }
 
         const reqBody = req.body;
-        if (reqBody) {
-            const errorMsg = schema.validateProjectReqData(reqBody);
-            if (errorMsg !== undefined) {
-                res.status(400).json(
-                    errorMsg
-                );
-                return;
-            }
+        const errorMsg = schema.validateProjectReqData(reqBody);
+        if (errorMsg !== undefined) {
+            res.status(400).json(
+                errorMsg
+            );
+            return;
         }
 
         var project: schema.Project = {
@@ -123,15 +121,6 @@ async function createProject(req: express.Request, res: express.Response) {
         };
 
         var createdProject = await projectService.createProject(project);
-
-        // if (createdProject.rowCount && createdProject.rowCount > 0) {
-        //     res.status(404).json({
-        //         status: "error",
-        //         message: "Cannot create: Project already exists",
-        //     });
-        //     return
-        // }
-
 
         res.status(201).json(
             createdProject.rows[0]
@@ -150,14 +139,13 @@ async function createProject(req: express.Request, res: express.Response) {
 async function updateProject(req: express.Request, res: express.Response) {
     try {
         const reqBody = req.body;
-        if (reqBody) {
-            const errorMsg = schema.validateProjectReqData(reqBody);
-            if (errorMsg !== undefined) {
-                res.status(400).json(
-                    errorMsg
-                );
-                return;
-            }
+        if (!reqBody) {
+            console.error("No request body");
+            res.status(400).json({
+                status: "error",
+                message: "No request body",
+            });
+            return;
         }
         var project: schema.Project = {
             id: req.params.id,
