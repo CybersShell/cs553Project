@@ -7,7 +7,7 @@ export async function getAllProjects() {
                         name,
                         description,
                         owner_id,
-                        created_at AS "createdAt",
+                        created_at AS "createdAt"
                  FROM projects
                  ORDER BY id`,
    );
@@ -90,7 +90,6 @@ export async function updateProject(Project: schema.Project, userID: any, isAdmi
                         description,
                         created_at AS "createdAt";`,
       [Project.id, Project.name, Project.description, userID]
-      // TODO: add more parameters
    );
    if (result.rowCount == 0) {
       return {

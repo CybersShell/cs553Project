@@ -39,6 +39,13 @@ export function validateTaskReqData(reqData: any): ErrMsg | undefined {
             message: "No title in task request",
         }
 	}
+	if (!reqData.hasOwnProperty('project_id')){
+	    console.error("No project_id in task request");
+        return {
+            status: "error",
+            message: "No project_id in task request",
+        }
+	}
 }
 
 export function validateProjectReqData(reqData: any): ErrMsg | undefined {

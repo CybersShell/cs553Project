@@ -1,14 +1,11 @@
 import express from "express";
 import {isEmail} from 'validator';
 import { verifyJWT } from "../../services/user";
-import { REFUSED } from "node:dns";
 
 // This will be called for authorization on routes
 export async function authenticateToken(req: express.Request, res: express.Response, next: Function) {
     try {
         const token: string | undefined | null  = req.headers.authorization?.split("Bearer ")[1];
-        // console.log("Token: ", token);
-        // console.log("Token: ", req.headers);
         if (!token) {
             res.status(401).json({error: "Missing authorization token: should be 'Authorization: Bearer <token>' in header"});
             return;

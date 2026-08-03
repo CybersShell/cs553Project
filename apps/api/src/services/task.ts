@@ -15,10 +15,39 @@ export async function getAllTasks() {
    );
 }
 
-export async function createTask(task: schema.Task) {
+export async function createTask(task: schema.Task, isAdmin: boolean = false): Promise<any> {
+   if (isAdmin) {
+      if (task.projectID) {
+         const checkProject = await dbPool.query(
+            `SELECT id FROM projects WHERE id = $1;`, [task.projectID]
+         );
+         if (checkProject.rowCount == 0) {
+            return {
+               Error: `Updating task failed: Project with ID ${task.projectID} does not exist`,
+               statusCode: 404
+            };
+         }
+      }
+      return await dbPool.query(
+         `INSERT INTO tasks (title, assigned_to, project_id, description) VALUES ($1, $2, $3, $4) RETURNING *`
+         , [task.title, task.assignedTo, task.projectID, task.description]
+      );
+   }
+
+   if (task.projectID) {
+      const checkProject = await dbPool.query(
+         `SELECT id FROM projects WHERE id = $1 and owner_id = $2;`, [task.projectID, task.assignedTo]
+      );
+      if (checkProject.rowCount == 0) {
+         return {
+            Error: `Updating task failed: Project with ID ${task.projectID} does not exist or user is not owner`,
+            statusCode: 404
+         };
+      }
+   }
    return await dbPool.query(
-      `INSERT INTO tasks (title, assigned_to, project_id) VALUES ($1, $2, $3) RETURNING *`
-      , [task.title, task.assignedTo, task.projectID]
+      `INSERT INTO tasks (title, assigned_to, project_id, description) VALUES ($1, $2, $3, $4) RETURNING *`
+      , [task.title, task.assignedTo, task.projectID, task.description]
    );
 }
 
@@ -39,7 +68,7 @@ export async function getTasksForUser(userId: number) {
 export async function getTaskById(id: any, userId: number, isAdmin: boolean = false): Promise<any> {
    if (isAdmin) {
       const checkProject = await dbPool.query(
-         `SELECT id FROM projects WHERE id = $1`, [id]
+         `SELECT id FROM tasks WHERE id = $1`, [id]
       );
       if (checkProject.rowCount == 0) {
          return {
@@ -60,7 +89,7 @@ export async function getTaskById(id: any, userId: number, isAdmin: boolean = fa
                  WHERE id = $1 AND assigned_to = $2;`, [id, userId]
    );
 }
-export async function updateTask(task: schema.Task, ownerId: number, isAdmin: boolean = false): Promise<any> {
+export async function updateTask(task: schema.Task, userId: number, isAdmin: boolean = false): Promise<any> {
    if (isAdmin) {
       if (task.projectID) {
          const checkProject = await dbPool.query(
@@ -73,6 +102,17 @@ export async function updateTask(task: schema.Task, ownerId: number, isAdmin: bo
             };
          }
       }
+      if (task.assignedTo) {
+         const checkUser = await dbPool.query(
+            `SELECT id FROM users WHERE id = $1;`, [task.assignedTo]
+         );
+         if (checkUser.rowCount == 0) {
+            return {
+               Error: `Updating task failed: user with ID ${task.projectID} does not exist`,
+               statusCode: 404
+            };
+         }
+      }
 
       return await dbPool.query(
          `UPDATE tasks
@@ -81,6 +121,7 @@ export async function updateTask(task: schema.Task, ownerId: number, isAdmin: bo
                       status = CASE WHEN $3 != '' THEN $3 ELSE status END,
                       description = CASE WHEN $4 != '' THEN $4 ELSE description END,
                       project_id = CASE WHEN $5 != 0 THEN $5 ELSE project_id END,
+                      assigned_to = CASE WHEN $6 != 0 THEN $6 ELSE assigned_to END,
                       updated_at = NOW()
                   WHERE id = ($1) RETURNING id,
                         title,
@@ -90,13 +131,13 @@ export async function updateTask(task: schema.Task, ownerId: number, isAdmin: bo
                         assigned_to AS "assignedTo",
                         created_at AS "createdAt",
                         updated_at AS "updatedAt";`,
-         [task.id, task.title, task.status, task.description, task.projectID]
+         [task.id, task.title, task.status, task.description, task.projectID, task.assignedTo]
       );
    }
 
    if (task.projectID) {
       const checkProject = await dbPool.query(
-         `SELECT id FROM projects WHERE id = $1 AND owner_id = $2`, [task.projectID, ownerId]
+         `SELECT id FROM projects WHERE id = $1 AND owner_id = $2`, [task.projectID, userId]
       );
       if (checkProject.rowCount == 0) {
          return {
@@ -113,7 +154,7 @@ export async function updateTask(task: schema.Task, ownerId: number, isAdmin: bo
                       description = CASE WHEN $4 != '' THEN $4 ELSE description END,
                       project_id = CASE WHEN $5 != 0 THEN $5 ELSE project_id END,
                       updated_at = NOW()
-                  WHERE id = ($1) RETURNING id,
+                  WHERE id = ($1) and assigned_to = $6 RETURNING id,
                         title,
                         description,
                         status,
@@ -121,7 +162,7 @@ export async function updateTask(task: schema.Task, ownerId: number, isAdmin: bo
                         assigned_to AS "assignedTo",
                         created_at AS "createdAt",
                         updated_at AS "updatedAt";`,
-      [task.id, task.title, task.status, task.description, task.projectID]
+      [task.id, task.title, task.status, task.description, task.projectID, userId]
    );
 }
 

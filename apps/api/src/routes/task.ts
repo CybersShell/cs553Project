@@ -20,8 +20,18 @@ async function getTasksById(req: express.Request, res: express.Response) {
     try {
         const result = await taskService.getTaskById(Number(req.params.id), req.userTokenData.id, req.userTokenData.role);
 
+        if (result.hasOwnProperty("Error")) {
+            res.status(result.statusCode).json({
+                error: result.Error
+            })
+            return;
+        }
+        
         if (result.rowCount && result.rowCount > 0) {
-            res.json(result.rows[0]);
+            res.status(201).json({
+                status: "success",
+                task: result.rows[0]
+            })
             return;
         }
 
@@ -97,27 +107,25 @@ async function createTask(req: express.Request, res: express.Response) {
         }
         var task: schema.Task = {
             id: null, // DB will create id
-            title: reqBody.title,
-            status: reqBody.status,
-            description: "",
+            title: reqBody.title?.trim(),
+            status: reqBody.status?.trim() || "",
+            description: reqBody.description?.trim() || "",
             assignedTo: req.userTokenData.id,
-            projectID: null,
+            projectID: reqBody.project_id,
         };
 
-        var createdTask = await taskService.createTask(task);
+        var createdTask = await taskService.createTask(task, req.userTokenData.role == 'admin');
+        if (createdTask.hasOwnProperty("Error")) {
+            res.status(createdTask.statusCode).json({
+                error: createdTask.Error
+            })
+            return;
+        }
 
-        // if (createdTask.rowCount && createdTask.rowCount > 0) {
-        //     res.status(404).json({
-        //         status: "error",
-        //         message: "Cannot create: Task already exists",
-        //     });
-        //     return
-        // }
-
-
-        res.status(201).json(
-            createdTask.rows[0]
-        )
+        res.status(201).json({
+            status: "success",
+            task: createdTask.rows[0]
+        })
 
     } catch (error) {
         console.error("Failed to create task:", error);
@@ -146,7 +154,7 @@ async function updateTask(req: express.Request, res: express.Response) {
             status: reqBody.status,
             description: reqBody.description,
             projectID: reqBody.project_id,
-            assignedTo: null,
+            assignedTo: reqBody.assigned_to,
         };
 
         const result = await taskService.updateTask(task, req.userTokenData.id, req.userTokenData.role == 'admin')
@@ -168,7 +176,7 @@ async function updateTask(req: express.Request, res: express.Response) {
 
         res.json({
             status: "success",
-            message: result.rows[0]
+            task: result.rows[0]
         });
     } catch (error) {
         console.error("Failed to update task:", error);

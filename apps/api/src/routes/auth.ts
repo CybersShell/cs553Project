@@ -36,7 +36,6 @@ async function loginUser(req: express.Request, res: express.Response) {
         const user: schema.User = {
                 name: req.user.name,
                 email: req.user.email,
-                // passwordHash: await userService.hashPassword(req.body.password),
             }
         const userResult = await userService.findUser(user);
         if (userResult.rowCount && userResult.rowCount > 0) {

@@ -67,7 +67,7 @@ psql postgresql://postgres:postgres@localhost:5432/cs453 -f database/schema.sql
 ## To start the server
 ```bash
 npm install
-npm run server
+npm run -prefix apps/api start
 ```
 
 Admins can:
@@ -77,117 +77,12 @@ Admins can:
 
 ## Testing
 
-GET database health:
-
+Automated tests are provided in apps/client/client.sh.
 ```bash
-curl -X GET http://localhost:3000/db-health
+cd apps/client
+./client.sh
 ```
-
-Register a user:
-
-```bash
-curl -X POST http://localhost:3000/auth/register \                             
-  -H "Content-Type: application/json" \
-  -d '{"email": "anw0044@uah.edu", "password":"a.very.secure.pass", "name": "Andrew"}'
-```
-
-To update this user to have admin status:
-
-```bash
-psql postgresql://postgres:postgres@localhost:5432/cs453 -f database/user.sql
-```
-
-Login:
-
-```bash
-token=$(curl -X POST http://localhost:3000/auth/login \
-  -H "Content-Type: application/json" \                                  
-  -d '{"email": "anw0044@uah.edu", "password":"a.very.secure.pass"}' | jq -r .token)
-```
-
-
-GET all tasks:
-
-```bash
-curl -X GET http://localhost:3000/tasks \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
-```
-
-GET a task:
-
-```bash
-curl -X GET http://localhost:3000/tasks/1 \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
-```
-
-POST a task:
-
-```bash
-curl -X POST http://localhost:3000/tasks \    
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
-  -d '{"title": "Create task API"}'
-```
-
-The `project_id` field is optional, and the server will return an error if the project does not exist.
-
-```
-curl -X PATCH http://localhost:3000/tasks/1 \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
-  -d '{"title": "Whimsy", "status": "in progress", "project_id": 55}'
-```
-
-PATCH a task:
-
-```bash
-curl -X PATCH http://localhost:3000/tasks/3 \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
-  -d '{"title": "Patch rejects non-existant tasks", "status": "in progress", "project_id": 1}'
-```
-
-As an admin, DELETE a task:
-
-```
-curl -X DELETE http://localhost:3000/tasks/1 \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
-```
-
-GET all projects:
-
-```bash
-curl -X GET http://localhost:3000/projects \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
-```
-
-GET a project:
-
-```bash
-curl -X GET http://localhost:3000/projects/1 \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
-```
-
-POST a project:
-
-```bash
-curl -X POST http://localhost:3000/projects \    
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
-  -d '{"name": "Task and Project API"}' 
-```
-
-PATCH a project:
-
-```bash
-curl -X PATCH http://localhost:3000/projects/1 \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token" \
-  -d '{"name": "Task and Project API", "description":"Create a task and project API with authentication"}'
-```
-
-As an admin, DELETE a project:
-
-```
-curl -X DELETE http://localhost:3000/projects/1 \
-  -H "Content-Type: application/json" -H "Authorization: Bearer $token"
-```
-
+Be sure to install `jq` to parse JSON in bash.
 
 ---
 

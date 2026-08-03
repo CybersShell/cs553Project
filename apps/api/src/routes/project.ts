@@ -39,7 +39,12 @@ async function getProjectById(req: express.Request, res: express.Response) {
             return;
         }
         const result = await projectService.getProjectById(Number(req.params.id), req.userTokenData.id);
-
+            if (result.hasOwnProperty("Error")) {
+                res.status(404).json({
+                    error: result.Error
+                })
+                return;
+            }
         if (result.rowCount && result.rowCount > 0) {
             res.json(result.rows[0]);
             return;
@@ -122,9 +127,10 @@ async function createProject(req: express.Request, res: express.Response) {
 
         var createdProject = await projectService.createProject(project);
 
-        res.status(201).json(
-            createdProject.rows[0]
-        )
+        res.status(201).json({
+            status: "success",
+            project: createdProject.rows[0]
+        })
 
     } catch (error) {
         console.error("Failed to create project:", error);
@@ -174,7 +180,7 @@ async function updateProject(req: express.Request, res: express.Response) {
 
             res.json({
                 status: "success",
-                message: result.rows[0]
+                project: result.rows[0]
             })
             return;
         }
@@ -190,7 +196,7 @@ async function updateProject(req: express.Request, res: express.Response) {
 
         res.json({
             status: "success",
-            message: result.rows[0]
+            project: result.rows[0]
         })
     } catch (error) {
         console.error("Failed to update project:", error);
